@@ -250,4 +250,7 @@ function sortByRatingDesc(songA, songB)
 	return +songB.rating - +songA.rating
 }
 
-const allSongMasterData = await loadSongMasterData()
+var allSongMasterData
+(async function(){
+    allSongMasterData = await loadSongMasterData()
+})()
