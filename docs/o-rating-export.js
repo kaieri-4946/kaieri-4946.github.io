@@ -19,20 +19,20 @@ function selectFile() {
 selectFile()
 
 var musicData
-(async function(){
+(async function () {
     musicData = await (await fetch(`https://kaieri-4946.github.io/json/music.json`)).json()
     musicData = musicData.music
 })()
 
 // Entry point for generating
 function parsePage() {
-    let finalRating = calcTotalRating(rating)
-
     let ratingModel = {
         best: mapRating(rating.oldBest),
-        new: mapRating(rating.newBest),
+        new: mapRating(rating.newBest, true),
         pscore: mapRating(rating.platinum),
     }
+
+    let finalRating = calcTotalRating(ratingModel.best, ratingModel.new, ratingModel.pscore)
 
     let result = {
         profile: mapProfile(username, finalRating),
@@ -43,28 +43,29 @@ function parsePage() {
     return result;
 }
 
-function calcTotalRating(rating) {
+function calcTotalRating(oldBest, newBest, pscore) {
     let result = 0
-    for (let music of rating.newBest) {
-        result += music.rate1000 / 1000
+
+    for (let music of oldBest) {
+        result += music.rating
     }
 
-    for (let music of rating.oldBest) {
-        result += music.rate1000 / 1000
+    for (let music of newBest) {
+        result += music.rating
     }
 
-    for (let music of rating.platinum) {
-        result += music.rate1000 / 1000
+    for (let music of pscore) {
+        result += music.p_rating
     }
 
     return result / 50;
 }
 
-function mapRating(rating) {
+function mapRating(rating, isNew = false) {
     let ratingArray = []
     for (let music of rating.filter(x => x.id != '0')) {
         let data = getMasterData(music)
-        let model = mapToWebModel(music, data)
+        let model = mapToWebModel(music, data, isNew)
         ratingArray.push(model)
     }
     return ratingArray
@@ -94,7 +95,7 @@ function getMasterData(music) {
     }
 }
 
-function mapToWebModel(music, data) {
+function mapToWebModel(music, data, isNew) {
     return {
         title: data.name,
         artist: data.artist,
@@ -102,7 +103,7 @@ function mapToWebModel(music, data) {
         diff: toWebModelDiffString(data.diff),
         rank: getRanking(music.score),
         const: +data.cc,
-        rating: music.rate1000 / 1000,
+        rating: calculateScoreRating(+data.cc, music.score) + calculateLampScoreRating(music),
         p_rating: data.cc * data.cc * music.stars / 1000,
         update: "1970-01-01",
         lamps:
@@ -131,6 +132,30 @@ function getRanking(score) {
     else if (score >= 600000) return scoreRank = "B"
     else if (score >= 500000) return scoreRank = "C"
     else return "D"
+}
+
+function calculateScoreRating(cc, score) {
+    // Tech score rank lamp added at the end
+    if (score == 1010000) return cc + 2 + 0.3
+    else if (score >= 1007500) return cc + 1.75 + Math.floor((score - 1007500) / 10) * 0.001 + 0.3
+    else if (score >= 1000000) return cc + 1.25 + Math.floor((score - 1000000) / 15) * 0.001 + 0.2
+    else if (score >= 990000) return cc + 0.75 + Math.floor((score - 990000) / 20) * 0.001 + 0.1
+    else if (score >= 970000) return cc + Math.floor((score - 970000) / 20 * 0.75) * 0.001
+    else if (score >= 900000) return cc + Math.floor((score - 970000) / 17.5) * 0.001
+    else if (score >= 800000) return cc + Math.floor((score - 900000) / 50) * 0.001
+    else if (score > 500000) return (cc - 6) * (score - 500000) / 300000
+    else return 0
+}
+
+function calculateLampScoreRating(music) {
+    if(music.score <= 800000) return 0
+    
+    let result = 0
+    if (music.fullBell) result += 0.05
+    if (music.lamp == 'FC') result += 0.1
+    if (music.lamp == 'AB') result += 0.3
+    if (music.score == 1010000) result += 0.05
+    return result
 }
 
 function mapProfile(username, finalRating) {
