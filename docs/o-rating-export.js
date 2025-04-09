@@ -9,6 +9,9 @@ function selectFile() {
         let reader = new FileReader()
 
         username = file.name
+        var regexMatch = username.match(/rating-(?<name>[^.]+)\.json/)
+        if(regexMatch) username = regexMatch.groups.name
+
         reader.readAsText(file)
         reader.onload = readerEvent => {
             rating = JSON.parse(readerEvent.target.result)
@@ -48,14 +51,17 @@ function calcTotalRating(oldBest, newBest, pscore) {
 
     for (let music of oldBest) {
         result += music.rating
+        console.log(music.rating)
     }
 
     for (let music of newBest) {
         result += music.rating
+        console.log(music.rating)
     }
 
     for (let music of pscore) {
         result += music.p_rating
+        console.log(music.p_rating)
     }
 
     return result / 50;
