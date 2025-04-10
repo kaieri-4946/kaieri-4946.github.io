@@ -51,27 +51,24 @@ function calcTotalRating(oldBest, newBest, pscore) {
 
     for (let music of oldBest) {
         result += music.rating
-        console.log(music.rating)
     }
 
     for (let music of newBest) {
         result += music.rating
-        console.log(music.rating)
     }
 
     for (let music of pscore) {
         result += music.p_rating
-        console.log(music.p_rating)
     }
 
     return result / 50;
 }
 
-function mapRating(rating, isNew = false) {
+function mapRating(rating) {
     let ratingArray = []
     for (let music of rating.filter(x => x.id != '0')) {
         let data = getMasterData(music)
-        let model = mapToWebModel(music, data, isNew)
+        let model = mapToWebModel(music, data)
         ratingArray.push(model)
     }
     return ratingArray
@@ -101,7 +98,7 @@ function getMasterData(music) {
     }
 }
 
-function mapToWebModel(music, data, isNew) {
+function mapToWebModel(music, data) {
     return {
         title: data.name,
         artist: data.artist,
@@ -111,6 +108,8 @@ function mapToWebModel(music, data, isNew) {
         const: +data.cc,
         rating: calculateScoreRating(+data.cc, music.score) + calculateLampScoreRating(music),
         p_rating: data.cc * data.cc * music.stars / 1000,
+        p_score: data.cc * data.cc * music.stars / 1000,
+        p_star: music.stars,
         update: "1970-01-01",
         lamps:
         {
