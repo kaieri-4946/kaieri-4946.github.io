@@ -35,7 +35,7 @@ function parsePage() {
         pscore: mapRating(rating.platinum),
     }
 
-    let finalRating = calcTotalRating(ratingModel.best, ratingModel.new, ratingModel.pscore)
+    let finalRating = calcTotalRating(rating.oldBest, rating.newBest, rating.platinum)
 
     let result = {
         profile: mapProfile(username, finalRating),
@@ -50,18 +50,18 @@ function calcTotalRating(oldBest, newBest, pscore) {
     let result = 0
 
     for (let music of oldBest) {
-        result += music.rating
+        result += music.rate1000
     }
 
     for (let music of newBest) {
-        result += music.rating
+        result += music.rate1000 * 5
     }
 
     for (let music of pscore) {
-        result += music.p_rating
+        result += music.rate1000
     }
 
-    return result / 50;
+    return result / 50000;
 }
 
 function mapRating(rating) {
