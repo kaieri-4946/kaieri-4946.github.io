@@ -47,21 +47,26 @@ function parsePage() {
 }
 
 function calcTotalRating(oldBest, newBest, pscore) {
-    let result = 0
+    let oldRating = 0
 
     for (let music of oldBest) {
-        result += music.rate1000
+        oldRating += music.rate1000
     }
+    oldRating = Math.floor(oldRating / 50)
 
+    let newRating = 0
     for (let music of newBest) {
-        result += music.rate1000 * 5
+        newRating += music.rate1000 * 5
     }
+    newRating = Math.floor(newRating / 50)
 
+    let platRating = 0
     for (let music of pscore) {
-        result += music.rate1000
+        platRating += music.rate1000
     }
+    platRating = Math.floor(platRating / 50)
 
-    return result / 50000;
+    return (oldRating + newRating + platRating) / 1000
 }
 
 function mapRating(rating) {
